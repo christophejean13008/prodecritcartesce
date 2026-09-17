@@ -562,6 +562,29 @@ async function mkCanvas(emoji, word, color, isPlural){
   return c.toDataURL('image/webp',0.85);
 }
 
+// Retire le pronom si l'IA l'a inclus dans la forme verbale
+function _stripPron(label, form){
+  const f=(form||'').trim();
+  const fl=f.toLowerCase();
+  const prefixes={
+    'je':["j'","je "],'tu':['tu '],
+    'il/elle':['il ','elle '],'nous':['nous '],
+    'vous':['vous '],'ils/elles':['ils ','elles ']
+  };
+  for(const pre of (prefixes[label]||[])){
+    if(fl.startsWith(pre)) return f.slice(pre.length);
+  }
+  return f;
+}
+// Dessine un texte en réduisant la police si ça déborde
+function _fitText(ctx,text,x,y,bold,size,family,maxW,align){
+  ctx.textAlign=align||'left';
+  let s=size;
+  ctx.font=(bold?'bold ':'')+s+'px '+family;
+  while(ctx.measureText(text).width>maxW && s>8){s--;ctx.font=(bold?'bold ':'')+s+'px '+family;}
+  ctx.fillText(text,x,y);
+}
+
 async function mkCanvasVerb(item, color, isPlural){
   await document.fonts.load("18px 'Belle Allure CM'").catch(()=>{});
   const W=200,H=270,c=document.createElement('canvas');
@@ -577,24 +600,25 @@ async function mkCanvasVerb(item, color, isPlural){
   // séparateur
   ctx.strokeStyle='#eee';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(12,118);ctx.lineTo(188,118);ctx.stroke();
-  // 3 formes conjuguées
+  // 3 formes conjuguées (avec strip pronom + auto-fit)
   const rows=isPlural
     ?[['nous',item.nous||''],['vous',item.vous||''],['ils/elles',item.ils||'']]
     :[['je',item.je||''],['tu',item.tu||''],['il/elle',item.il||'']];
   const lY=[143,178,213];
   rows.forEach(([p,v],i)=>{
+    const verb=_stripPron(p,v); // retirer le pronom si doublon
+    // pronom en gris (droite)
     ctx.font='18px Arial,sans-serif';ctx.fillStyle='#aaa';
     ctx.textAlign='right';ctx.textBaseline='alphabetic';
     ctx.fillText(p,62,lY[i]);
-    ctx.font='bold 21px Arial Black,sans-serif';ctx.fillStyle='#1a1a1a';
-    ctx.textAlign='left';
-    ctx.fillText(v,68,lY[i]);
+    // verbe en gras (gauche), auto-fit si trop long
+    ctx.fillStyle='#1a1a1a';
+    _fitText(ctx,verb,68,lY[i],true,21,'Arial Black,sans-serif',126,'left');
   });
-  // résumé en Belle Allure CM
-  const resume=rows.map(([,v])=>v).join(' · ');
-  ctx.font="18px 'Belle Allure CM',cursive";ctx.fillStyle='#aaa';
-  ctx.textAlign='center';
-  ctx.fillText(resume,100,252);
+  // résumé en Belle Allure CM avec auto-fit
+  const resume=rows.map(([p,v])=>_stripPron(p,v)).join(' · ');
+  ctx.fillStyle='#aaa';ctx.textBaseline='alphabetic';
+  _fitText(ctx,resume,100,252,false,18,"'Belle Allure CM',cursive",180,'center');
   return c.toDataURL('image/webp',0.85);
 }
 
@@ -612,7 +636,7 @@ async function buildTheme(theme, ak){
   const prompt=`Pour le thème scolaire "${theme}", génère des mots français pour cartes flash (élèves 6-11 ans).
 RÉPONDS UNIQUEMENT avec du JSON valide, sans markdown, sans texte autour :
 {"personnages":[{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"}],"verbes":[{"infinitif":"X","je":"X","tu":"X","il":"X","nous":"X","vous":"X","ils":"X","emoji":"🙂"},{"infinitif":"X","je":"X","tu":"X","il":"X","nous":"X","vous":"X","ils":"X","emoji":"🙂"},{"infinitif":"X","je":"X","tu":"X","il":"X","nous":"X","vous":"X","ils":"X","emoji":"🙂"},{"infinitif":"X","je":"X","tu":"X","il":"X","nous":"X","vous":"X","ils":"X","emoji":"🙂"},{"infinitif":"X","je":"X","tu":"X","il":"X","nous":"X","vous":"X","ils":"X","emoji":"🙂"},{"infinitif":"X","je":"X","tu":"X","il":"X","nous":"X","vous":"X","ils":"X","emoji":"🙂"}],"lieux":[{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"}]}
-Remplace tous les "X" par des mots liés à "${theme}". Exactement 6 entrées par catégorie. Pour "verbes" : "infinitif"=forme infinitive, puis les 6 personnes conjuguées au présent ("je","tu","il","nous","vous","ils"). Les clés "sg" et "pl" ne doivent PAS être utilisées pour les verbes. "emoji" = un seul emoji représentatif.`;
+Remplace tous les "X" par des mots liés à "${theme}". Exactement 6 entrées par catégorie. Pour "verbes" : "infinitif"=forme infinitive, puis les 6 formes au présent SANS pronom ("je":"tape" PAS "je tape", "tu":"tapes" PAS "tu tapes", etc.). Les clés "sg" et "pl" ne doivent PAS être utilisées. "emoji" = un seul emoji représentatif.`;
 
   const raw = await llmCall(prompt, ak);
   tstep('words','done'); tstep('cards','running'); tprog('Création des cartes…');
