@@ -188,6 +188,8 @@ body.recopie .writing-lines{display:block}
 .theme-acc-content{display:none;border:2px solid #e8834f;border-top:none;border-radius:0 0 10px 10px;padding:.5rem .4rem}
 .theme-acc-content.verb-c{border-color:#ee0000}
 .theme-acc-content.open{display:block}
+
+.theme-acc-content .cards-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.6rem}
 </style>
 </head>
 <body>
@@ -539,9 +541,9 @@ function mkSVG(emoji, word, color, isPlural){
 <rect x="2" y="2" width="196" height="266" rx="9" fill="none" stroke="${color}" stroke-width="3"/>
 <rect x="6" y="6" width="188" height="170" rx="7" fill="#fffcf8"/>
 ${emojis}
-<text x="100" y="200" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="15" font-weight="bold" fill="#1a1a1a">${w.toUpperCase()}</text>
-<text x="100" y="223" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#333">${w}</text>
-<text x="100" y="248" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-style="italic" fill="#666">${w}</text>
+<text x="100" y="196" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="26" font-weight="bold" fill="#1a1a1a">${w.toUpperCase()}</text>
+<text x="100" y="224" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" fill="#333">${w}</text>
+<text x="100" y="252" text-anchor="middle" font-family="Georgia,serif" font-size="19" font-style="italic" fill="#666">${w}</text>
 </svg>`;
   try{return 'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));}
   catch(e){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);}
@@ -558,10 +560,10 @@ function svgVerb(item, color, isPlural){
   const rows = isPlural
     ? [['nous',e(item.nous||'')],['vous',e(item.vous||'')],['ils/elles',e(item.ils||'')]]
     : [['je',e(item.je||'')],['tu',e(item.tu||'')],['il/elle',e(item.il||'')]];
-  const lineY=[147,178,209];
+  const lineY=[143,178,213];
   const lines=rows.map(([p,v],i)=>`
-    <text x="62" y="${lineY[i]}" text-anchor="end" font-family="Arial,sans-serif" font-size="11" fill="#aaa">${p}</text>
-    <text x="68" y="${lineY[i]}" text-anchor="start" font-family="Arial Black,sans-serif" font-size="13" font-weight="bold" fill="#1a1a1a">${v}</text>`).join('');
+    <text x="62" y="${lineY[i]}" text-anchor="end" font-family="Arial,sans-serif" font-size="18" fill="#aaa">${p}</text>
+    <text x="68" y="${lineY[i]}" text-anchor="start" font-family="Arial Black,sans-serif" font-size="21" font-weight="bold" fill="#1a1a1a">${v}</text>`).join('');
   const italic=rows.map(([,v])=>v).join(' · ');
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 270">
 <rect width="200" height="270" rx="10" fill="white"/>
@@ -570,7 +572,7 @@ function svgVerb(item, color, isPlural){
 ${emojiPart}
 <line x1="12" y1="118" x2="188" y2="118" stroke="#eee" stroke-width="1"/>
 ${lines}
-<text x="100" y="250" text-anchor="middle" font-family="Georgia,serif" font-size="10" font-style="italic" fill="#ccc">${e(italic)}</text>
+<text x="100" y="250" text-anchor="middle" font-family="Georgia,serif" font-size="14" font-style="italic" fill="#ccc">${e(italic)}</text>
 </svg>`;
   try{return 'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));}
   catch(err){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);}
