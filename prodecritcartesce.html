@@ -529,54 +529,75 @@ async function llmCall(prompt, relais){
   return d.choices?.[0]?.message?.content || '';
 }
 
-function mkSVG(emoji, word, color, isPlural){
-  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  const em=esc(emoji); const w=esc(word);
-  const emojis = isPlural
-    ? `<text x="68" y="98" text-anchor="middle" dominant-baseline="middle" font-size="50">${em}</text>
-       <text x="138" y="98" text-anchor="middle" dominant-baseline="middle" font-size="50">${em}</text>`
-    : `<text x="100" y="98" text-anchor="middle" dominant-baseline="middle" font-size="70">${em}</text>`;
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 270">
-<rect width="200" height="270" rx="10" fill="white"/>
-<rect x="2" y="2" width="196" height="266" rx="9" fill="none" stroke="${color}" stroke-width="3"/>
-<rect x="6" y="6" width="188" height="170" rx="7" fill="#fffcf8"/>
-${emojis}
-<text x="100" y="196" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="26" font-weight="bold" fill="#1a1a1a">${w.toUpperCase()}</text>
-<text x="100" y="224" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" fill="#333">${w}</text>
-<text x="100" y="252" text-anchor="middle" font-family="Georgia,serif" font-size="19" font-style="italic" fill="#666">${w}</text>
-</svg>`;
-  try{return 'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));}
-  catch(e){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);}
+function _rr(ctx,x,y,w,h,r){
+  if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
+  else{ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
 }
 
-
-function svgVerb(item, color, isPlural){
-  const e=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  const em=e(item.emoji||'❓');
-  const emojiPart = isPlural
-    ? `<text x="68" y="68" text-anchor="middle" dominant-baseline="middle" font-size="44">${em}</text>
-       <text x="138" y="68" text-anchor="middle" dominant-baseline="middle" font-size="44">${em}</text>`
-    : `<text x="100" y="68" text-anchor="middle" dominant-baseline="middle" font-size="54">${em}</text>`;
-  const rows = isPlural
-    ? [['nous',e(item.nous||'')],['vous',e(item.vous||'')],['ils/elles',e(item.ils||'')]]
-    : [['je',e(item.je||'')],['tu',e(item.tu||'')],['il/elle',e(item.il||'')]];
-  const lineY=[143,178,213];
-  const lines=rows.map(([p,v],i)=>`
-    <text x="62" y="${lineY[i]}" text-anchor="end" font-family="Arial,sans-serif" font-size="18" fill="#aaa">${p}</text>
-    <text x="68" y="${lineY[i]}" text-anchor="start" font-family="Arial Black,sans-serif" font-size="21" font-weight="bold" fill="#1a1a1a">${v}</text>`).join('');
-  const italic=rows.map(([,v])=>v).join(' · ');
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 270">
-<rect width="200" height="270" rx="10" fill="white"/>
-<rect x="2" y="2" width="196" height="266" rx="9" fill="none" stroke="${color}" stroke-width="3"/>
-<rect x="6" y="6" width="188" height="108" rx="7" fill="#fff8f8"/>
-${emojiPart}
-<line x1="12" y1="118" x2="188" y2="118" stroke="#eee" stroke-width="1"/>
-${lines}
-<text x="100" y="250" text-anchor="middle" font-family="Georgia,serif" font-size="14" font-style="italic" fill="#ccc">${e(italic)}</text>
-</svg>`;
-  try{return 'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));}
-  catch(err){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);}
+async function mkCanvas(emoji, word, color, isPlural){
+  await document.fonts.load("22px 'Belle Allure CM'").catch(()=>{});
+  const W=200,H=270,c=document.createElement('canvas');
+  c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  // fond blanc
+  ctx.fillStyle='#fff'; _rr(ctx,0,0,W,H,10); ctx.fill();
+  // bordure colorée
+  ctx.strokeStyle=color;ctx.lineWidth=3; _rr(ctx,2,2,W-4,H-4,9); ctx.stroke();
+  // zone illustration
+  ctx.fillStyle='#fffaf5'; _rr(ctx,6,6,W-12,170,7); ctx.fill();
+  // emoji(s)
+  ctx.textBaseline='middle'; ctx.textAlign='center';
+  if(isPlural){ctx.font='50px serif';ctx.fillText(emoji,68,98);ctx.fillText(emoji,138,98);}
+  else{ctx.font='70px serif';ctx.fillText(emoji,100,98);}
+  // MOT EN MAJUSCULES
+  ctx.font='bold 26px Arial Black,sans-serif';
+  ctx.fillStyle='#1a1a1a';ctx.textBaseline='alphabetic';
+  ctx.fillText(word.toUpperCase(),100,196);
+  // mot minuscules
+  ctx.font='22px Arial,sans-serif';ctx.fillStyle='#333';
+  ctx.fillText(word,100,224);
+  // mot en Belle Allure CM (cursive)
+  ctx.font="22px 'Belle Allure CM',cursive";ctx.fillStyle='#555';
+  ctx.fillText(word,100,252);
+  return c.toDataURL('image/webp',0.85);
 }
+
+async function mkCanvasVerb(item, color, isPlural){
+  await document.fonts.load("18px 'Belle Allure CM'").catch(()=>{});
+  const W=200,H=270,c=document.createElement('canvas');
+  c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#fff'; _rr(ctx,0,0,W,H,10); ctx.fill();
+  ctx.strokeStyle=color;ctx.lineWidth=3; _rr(ctx,2,2,W-4,H-4,9); ctx.stroke();
+  ctx.fillStyle='#fff8f8'; _rr(ctx,6,6,W-12,108,7); ctx.fill();
+  // emoji(s)
+  ctx.textBaseline='middle';ctx.textAlign='center';
+  if(isPlural){ctx.font='44px serif';ctx.fillText(item.emoji||'',68,62);ctx.fillText(item.emoji||'',138,62);}
+  else{ctx.font='54px serif';ctx.fillText(item.emoji||'',100,62);}
+  // séparateur
+  ctx.strokeStyle='#eee';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(12,118);ctx.lineTo(188,118);ctx.stroke();
+  // 3 formes conjuguées
+  const rows=isPlural
+    ?[['nous',item.nous||''],['vous',item.vous||''],['ils/elles',item.ils||'']]
+    :[['je',item.je||''],['tu',item.tu||''],['il/elle',item.il||'']];
+  const lY=[143,178,213];
+  rows.forEach(([p,v],i)=>{
+    ctx.font='18px Arial,sans-serif';ctx.fillStyle='#aaa';
+    ctx.textAlign='right';ctx.textBaseline='alphabetic';
+    ctx.fillText(p,62,lY[i]);
+    ctx.font='bold 21px Arial Black,sans-serif';ctx.fillStyle='#1a1a1a';
+    ctx.textAlign='left';
+    ctx.fillText(v,68,lY[i]);
+  });
+  // résumé en Belle Allure CM
+  const resume=rows.map(([,v])=>v).join(' · ');
+  ctx.font="18px 'Belle Allure CM',cursive";ctx.fillStyle='#aaa';
+  ctx.textAlign='center';
+  ctx.fillText(resume,100,252);
+  return c.toDataURL('image/webp',0.85);
+}
+
 
 function mkCardEl(sgSrc, plSrc, isVerb){
   const d=document.createElement('div'); d.className='card-item';
@@ -623,17 +644,27 @@ Remplace tous les "X" par des mots liés à "${theme}". Exactement 6 entrées pa
     container.appendChild(wrap);
   }
 
+  // Pré-générer toutes les cartes via canvas (accès à Belle Allure CM)
+  tprog('Création des cartes…');
+  const [perso,verbes,lieux] = await Promise.all([
+    Promise.all((data.personnages||[]).map(async it=>({
+      sg:await mkCanvas(it.emoji,it.sg||'',TC,false),
+      pl:await mkCanvas(it.emoji,it.pl||'',TC,true)}))),
+    Promise.all((data.verbes||[]).map(async it=>({
+      sg:await mkCanvasVerb(it,VC,false),
+      pl:await mkCanvasVerb(it,VC,true)}))),
+    Promise.all((data.lieux||[]).map(async it=>({
+      sg:await mkCanvas(it.emoji,it.sg||'',TC,false),
+      pl:await mkCanvas(it.emoji,it.pl||'',TC,true)}))),
+  ]);
   mkAcc('👤','Personnages',TC,false,g=>{
-    for(const item of (data.personnages||[]))
-      g.appendChild(mkCardEl(mkSVG(item.emoji,item.sg,TC,false),mkSVG(item.emoji,item.pl,TC,true),false));
+    perso.forEach(c=>g.appendChild(mkCardEl(c.sg,c.pl,false)));
   });
   mkAcc('🏃','Verbes',VC,true,g=>{
-    for(const item of (data.verbes||[]))
-      g.appendChild(mkCardEl(svgVerb(item,VC,false),svgVerb(item,VC,true),true));
+    verbes.forEach(c=>g.appendChild(mkCardEl(c.sg,c.pl,true)));
   });
   mkAcc('📍','Lieux',TC,false,g=>{
-    for(const item of (data.lieux||[]))
-      g.appendChild(mkCardEl(mkSVG(item.emoji,item.sg,TC,false),mkSVG(item.emoji,item.pl,TC,true),false));
+    lieux.forEach(c=>g.appendChild(mkCardEl(c.sg,c.pl,false)));
   });
 
   const cap=theme.charAt(0).toUpperCase()+theme.slice(1);
