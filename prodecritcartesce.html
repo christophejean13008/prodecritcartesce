@@ -549,16 +549,15 @@ async function mkCanvas(emoji, word, color, isPlural){
   ctx.textBaseline='middle'; ctx.textAlign='center';
   if(isPlural){ctx.font='50px serif';ctx.fillText(emoji,68,98);ctx.fillText(emoji,138,98);}
   else{ctx.font='70px serif';ctx.fillText(emoji,100,98);}
-  // MOT EN MAJUSCULES
-  ctx.font='bold 26px Arial Black,sans-serif';
+  // MOT EN MAJUSCULES — auto-fit si trop long
   ctx.fillStyle='#1a1a1a';ctx.textBaseline='alphabetic';
-  ctx.fillText(word.toUpperCase(),100,196);
+  _fitText(ctx,word.toUpperCase(),100,196,true,26,'Arial Black,sans-serif',188,'center');
   // mot minuscules
-  ctx.font='22px Arial,sans-serif';ctx.fillStyle='#333';
-  ctx.fillText(word,100,224);
+  ctx.fillStyle='#333';
+  _fitText(ctx,word,100,224,false,22,'Arial,sans-serif',188,'center');
   // mot en Belle Allure CM (cursive)
-  ctx.font="22px 'Belle Allure CM',cursive";ctx.fillStyle='#555';
-  ctx.fillText(word,100,252);
+  ctx.fillStyle='#555';
+  _fitText(ctx,word,100,252,false,22,"'Belle Allure CM',cursive",188,'center');
   return c.toDataURL('image/webp',0.85);
 }
 
