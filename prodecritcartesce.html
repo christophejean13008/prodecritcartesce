@@ -471,15 +471,27 @@ function tstep(id,st){const el=document.getElementById('tstep-'+id);if(el)el.cla
 function tprog(m){document.getElementById('theme-prog-msg').textContent=m;}
 
 const RELAIS_DEFAUT = 'https://adaptedl-relais.chris333j.workers.dev';
+let _albertModel = null; // mis en cache après la 1ère découverte
 
 async function llmCall(prompt, relais){
-  const url = (relais || RELAIS_DEFAUT).replace(/\/$/, '');
-  // Le relais Cloudflare transmet à Albert API (CORS bloqué en direct)
-  const r = await fetch(url, {
+  const base = (relais || RELAIS_DEFAUT).replace(/\/$/, '');
+
+  // 1. Découvrir le modèle text-generation si pas encore connu
+  if(!_albertModel){
+    const mr = await fetch(base + '/v1/models');
+    if(!mr.ok) throw new Error('Relais : impossible de lister les modèles (HTTP '+mr.status+')');
+    const md = await mr.json();
+    const found = (md.data || []).find(m => m.type === 'text-generation');
+    if(!found) throw new Error('Aucun modèle text-generation trouvé sur le relais Albert.');
+    _albertModel = found.id;
+  }
+
+  // 2. Appel chat/completions
+  const r = await fetch(base + '/v1/chat/completions', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
-      model: 'AgentPublic/llama3-instruct-8b',
+      model: _albertModel,
       messages: [{role: 'user', content: prompt}],
       max_tokens: 2800,
       temperature: 0.2
@@ -487,10 +499,11 @@ async function llmCall(prompt, relais){
   });
   if(!r.ok){
     const t = await r.text().catch(()=>'');
-    throw new Error('Relais Albert : HTTP '+r.status+(t?' — '+t.slice(0,120):''));
+    _albertModel = null; // reset pour retenter à la prochaine génération
+    throw new Error('Albert : HTTP '+r.status+(t?' — '+t.slice(0,150):''));
   }
   const d = await r.json();
-  return d.choices?.[0]?.message?.content || d.content?.[0]?.text || '';
+  return d.choices?.[0]?.message?.content || '';
 }
 
 function mkSVG(emoji, word, color, isPlural){
