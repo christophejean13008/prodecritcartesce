@@ -175,6 +175,19 @@ body.recopie .writing-lines{display:block}
 .pb-cancel{background:#eee;border:none;padding:.44rem 1rem;border-radius:8px;cursor:pointer;font-family:inherit;font-size:.84rem}
 .pb-go{background:#30b4ff;border:none;padding:.44rem 1.2rem;border-radius:8px;color:#fff;font-weight:700;font-family:inherit;font-size:.84rem;cursor:pointer}
 .pb-go:disabled{opacity:.38;cursor:default}
+
+/* === ACCORDÉON THÈME === */
+.theme-acc-item{margin-bottom:.4rem}
+.theme-acc-header{width:100%;background:#fdf3ec;border:2px solid #e8834f;border-radius:10px;padding:.55rem 1rem;font-family:'Baloo 2',cursive;font-size:.95rem;font-weight:800;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;transition:background .2s,border-radius .15s}
+.theme-acc-header.verb-h{background:#fff5f5;border-color:#ee0000}
+.theme-acc-header.open{border-radius:10px 10px 0 0}
+.theme-acc-header.open:not(.verb-h){background:#e8834f;color:#fff}
+.theme-acc-header.verb-h.open{background:#ee0000;color:#fff}
+.acc-arrow{transition:transform .2s;font-size:.75rem}
+.theme-acc-header.open .acc-arrow{transform:rotate(180deg)}
+.theme-acc-content{display:none;border:2px solid #e8834f;border-top:none;border-radius:0 0 10px 10px;padding:.5rem .4rem}
+.theme-acc-content.verb-c{border-color:#ee0000}
+.theme-acc-content.open{display:block}
 </style>
 </head>
 <body>
@@ -433,6 +446,14 @@ document.addEventListener('DOMContentLoaded',()=>{
 (function(){
 
 
+
+window.toggleThemeAcc = function(btn){
+  const body = btn.nextElementSibling;
+  const opening = !body.classList.contains('open');
+  document.querySelectorAll('.theme-acc-content').forEach(c=>c.classList.remove('open'));
+  document.querySelectorAll('.theme-acc-header').forEach(b=>b.classList.remove('open'));
+  if(opening){ body.classList.add('open'); btn.classList.add('open'); }
+};
 window.openThemeModal = function(){
   document.getElementById('theme-overlay').classList.add('active');
   document.getElementById('theme-form-view').style.display='block';
@@ -526,6 +547,35 @@ ${emojis}
   catch(e){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);}
 }
 
+
+function svgVerb(item, color, isPlural){
+  const e=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const em=e(item.emoji||'❓');
+  const emojiPart = isPlural
+    ? `<text x="68" y="68" text-anchor="middle" dominant-baseline="middle" font-size="44">${em}</text>
+       <text x="138" y="68" text-anchor="middle" dominant-baseline="middle" font-size="44">${em}</text>`
+    : `<text x="100" y="68" text-anchor="middle" dominant-baseline="middle" font-size="54">${em}</text>`;
+  const rows = isPlural
+    ? [['nous',e(item.nous||'')],['vous',e(item.vous||'')],['ils/elles',e(item.ils||'')]]
+    : [['je',e(item.je||'')],['tu',e(item.tu||'')],['il/elle',e(item.il||'')]];
+  const lineY=[147,178,209];
+  const lines=rows.map(([p,v],i)=>`
+    <text x="62" y="${lineY[i]}" text-anchor="end" font-family="Arial,sans-serif" font-size="11" fill="#aaa">${p}</text>
+    <text x="68" y="${lineY[i]}" text-anchor="start" font-family="Arial Black,sans-serif" font-size="13" font-weight="bold" fill="#1a1a1a">${v}</text>`).join('');
+  const italic=rows.map(([,v])=>v).join(' · ');
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 270">
+<rect width="200" height="270" rx="10" fill="white"/>
+<rect x="2" y="2" width="196" height="266" rx="9" fill="none" stroke="${color}" stroke-width="3"/>
+<rect x="6" y="6" width="188" height="108" rx="7" fill="#fff8f8"/>
+${emojiPart}
+<line x1="12" y1="118" x2="188" y2="118" stroke="#eee" stroke-width="1"/>
+${lines}
+<text x="100" y="250" text-anchor="middle" font-family="Georgia,serif" font-size="10" font-style="italic" fill="#ccc">${e(italic)}</text>
+</svg>`;
+  try{return 'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));}
+  catch(err){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);}
+}
+
 function mkCardEl(sgSrc, plSrc, isVerb){
   const d=document.createElement('div'); d.className='card-item';
   const attr=isVerb?'data-cat="verb"':'';
@@ -538,8 +588,8 @@ async function buildTheme(theme, ak){
 
   const prompt=`Pour le thème scolaire "${theme}", génère des mots français pour cartes flash (élèves 6-11 ans).
 RÉPONDS UNIQUEMENT avec du JSON valide, sans markdown, sans texte autour :
-{"personnages":[{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"}],"verbes":[{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"}],"lieux":[{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"}]}
-Remplace tous les "X" par des mots liés à "${theme}". Exactement 6 entrées par catégorie. Pour "verbes" : "sg"=infinitif, "pl"=3ème personne du pluriel au présent. "emoji" doit être un seul emoji simple et représentatif.`;
+{"personnages":[{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"}],"verbes":[{"infinitif":"X","je":"X","tu":"X","il":"X","nous":"X","vous":"X","ils":"X","emoji":"🙂"},{"infinitif":"X","je":"X","tu":"X","il":"X","nous":"X","vous":"X","ils":"X","emoji":"🙂"},{"infinitif":"X","je":"X","tu":"X","il":"X","nous":"X","vous":"X","ils":"X","emoji":"🙂"},{"infinitif":"X","je":"X","tu":"X","il":"X","nous":"X","vous":"X","ils":"X","emoji":"🙂"},{"infinitif":"X","je":"X","tu":"X","il":"X","nous":"X","vous":"X","ils":"X","emoji":"🙂"},{"infinitif":"X","je":"X","tu":"X","il":"X","nous":"X","vous":"X","ils":"X","emoji":"🙂"}],"lieux":[{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"},{"sg":"X","pl":"X","emoji":"🙂"}]}
+Remplace tous les "X" par des mots liés à "${theme}". Exactement 6 entrées par catégorie. Pour "verbes" : "infinitif"=forme infinitive, puis les 6 personnes conjuguées au présent ("je","tu","il","nous","vous","ils"). Les clés "sg" et "pl" ne doivent PAS être utilisées pour les verbes. "emoji" = un seul emoji représentatif.`;
 
   const raw = await llmCall(prompt, ak);
   tstep('words','done'); tstep('cards','running'); tprog('Création des cartes…');
@@ -555,23 +605,34 @@ Remplace tous les "X" par des mots liés à "${theme}". Exactement 6 entrées pa
   container.innerHTML='';
   const TC='#e8834f', VC='#ee0000';
 
-  function addSub(icon, label, items, color, isVerb){
-    const h=document.createElement('div');
-    h.className='subsection-title'+(isVerb?' verb':'');
-    h.textContent=icon+' '+label;
-    container.appendChild(h);
-    const g=document.createElement('div'); g.className='cards-grid';
-    for(const item of (items||[])){
-      const sg=mkSVG(item.emoji, item.sg, color, false);
-      const pl=mkSVG(item.emoji, item.pl, color, true);
-      g.appendChild(mkCardEl(sg, pl, isVerb));
-    }
-    container.appendChild(g);
+  function mkAcc(icon, label, color, isVerb, buildFn){
+    const wrap=document.createElement('div'); wrap.className='theme-acc-item';
+    const btn=document.createElement('button');
+    btn.className='theme-acc-header'+(isVerb?' verb-h':'');
+    btn.style.color=isVerb?VC:TC;
+    btn.innerHTML=icon+' '+label+' <span class="acc-arrow">▼</span>';
+    btn.onclick=()=>toggleThemeAcc(btn);
+    const body=document.createElement('div');
+    body.className='theme-acc-content'+(isVerb?' verb-c':'');
+    const grid=document.createElement('div'); grid.className='cards-grid';
+    buildFn(grid);
+    body.appendChild(grid);
+    wrap.appendChild(btn); wrap.appendChild(body);
+    container.appendChild(wrap);
   }
 
-  addSub('👤','Personnages', data.personnages, TC, false);
-  addSub('🏃','Verbes',      data.verbes,      VC, true);
-  addSub('📍','Lieux',       data.lieux,       TC, false);
+  mkAcc('👤','Personnages',TC,false,g=>{
+    for(const item of (data.personnages||[]))
+      g.appendChild(mkCardEl(mkSVG(item.emoji,item.sg,TC,false),mkSVG(item.emoji,item.pl,TC,true),false));
+  });
+  mkAcc('🏃','Verbes',VC,true,g=>{
+    for(const item of (data.verbes||[]))
+      g.appendChild(mkCardEl(svgVerb(item,VC,false),svgVerb(item,VC,true),true));
+  });
+  mkAcc('📍','Lieux',TC,false,g=>{
+    for(const item of (data.lieux||[]))
+      g.appendChild(mkCardEl(mkSVG(item.emoji,item.sg,TC,false),mkSVG(item.emoji,item.pl,TC,true),false));
+  });
 
   const cap=theme.charAt(0).toUpperCase()+theme.slice(1);
   document.getElementById('theme-section-title').textContent=cap;
