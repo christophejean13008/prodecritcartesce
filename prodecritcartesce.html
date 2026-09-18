@@ -190,6 +190,10 @@ body.recopie .writing-lines{display:block}
 .theme-acc-content.open{display:block}
 
 .theme-acc-content .cards-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.6rem}
+
+.theme-width-ctrl{display:flex;align-items:center;gap:.5rem;margin:.4rem 0 .2rem;font-family:'Baloo 2',cursive;font-size:.75rem;color:#aaa}
+.theme-width-ctrl input[type=range]{flex:1;accent-color:#e8834f;height:4px;cursor:pointer}
+.theme-width-ctrl span{min-width:2.5rem;text-align:right;color:#e8834f;font-weight:700}
 </style>
 </head>
 <body>
@@ -244,6 +248,12 @@ body.recopie .writing-lines{display:block}
 </div>
 <div id="section-theme" class="section">
   <div class="section-header" style="color:#e8834f"><span>🎭</span><h2 id="theme-section-title">Thème personnalisé</h2></div>
+  <div class="theme-width-ctrl">
+    <span>📐</span>
+    <input type="range" id="theme-card-width" min="140" max="320" value="140" step="10"
+      oninput="setThemeCardWidth(this.value)">
+    <span id="theme-card-width-lbl">140px</span>
+  </div>
   <div id="theme-cards-container"></div>
 </div>
 <div class="builder">
@@ -449,6 +459,14 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 
 
+
+window.setThemeCardWidth = function(w){
+  document.querySelectorAll('.theme-acc-content .cards-grid').forEach(g=>{
+    g.style.gridTemplateColumns='repeat(auto-fill,minmax('+w+'px,1fr))';
+  });
+  const lbl=document.getElementById('theme-card-width-lbl');
+  if(lbl) lbl.textContent=w+'px';
+};
 window.toggleThemeAcc = function(btn){
   const body = btn.nextElementSibling;
   const opening = !body.classList.contains('open');
