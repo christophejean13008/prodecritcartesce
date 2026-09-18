@@ -549,31 +549,24 @@ function _rr(ctx,x,y,w,h,r){
   else{ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
 }
 
-async function mkCanvas(emoji, word, color, isPlural){
-  await document.fonts.load("22px 'Belle Allure CM'").catch(()=>{});
-  const W=200,H=270,c=document.createElement('canvas');
-  c.width=W;c.height=H;
-  const ctx=c.getContext('2d');
-  // fond blanc
-  ctx.fillStyle='#fff'; _rr(ctx,0,0,W,H,10); ctx.fill();
-  // bordure colorée
-  ctx.strokeStyle=color;ctx.lineWidth=3; _rr(ctx,2,2,W-4,H-4,9); ctx.stroke();
-  // zone illustration
-  ctx.fillStyle='#fffaf5'; _rr(ctx,6,6,W-12,170,7); ctx.fill();
-  // emoji(s)
-  ctx.textBaseline='middle'; ctx.textAlign='center';
-  if(isPlural){ctx.font='50px serif';ctx.fillText(emoji,68,98);ctx.fillText(emoji,138,98);}
-  else{ctx.font='70px serif';ctx.fillText(emoji,100,98);}
-  // MOT EN MAJUSCULES — auto-fit si trop long
-  ctx.fillStyle='#1a1a1a';ctx.textBaseline='alphabetic';
-  _fitText(ctx,word.toUpperCase(),100,196,true,26,'Arial,sans-serif',188,'center');
-  // mot minuscules
-  ctx.fillStyle='#333';
-  _fitText(ctx,word,100,224,false,22,'Arial,sans-serif',188,'center');
-  // mot en Belle Allure CM (cursive)
-  ctx.fillStyle='#555';
-  _fitText(ctx,word,100,252,false,22,"'Belle Allure CM',cursive",188,'center');
-  return c.toDataURL('image/webp',0.85);
+function mkCanvas(emoji, word, color, isPlural){
+  const e=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const em=e(emoji||''); const w=e(word||'');
+  const emojis = isPlural
+    ? `<text x="68" y="98" text-anchor="middle" dominant-baseline="middle" font-size="50">${em}</text>
+       <text x="138" y="98" text-anchor="middle" dominant-baseline="middle" font-size="50">${em}</text>`
+    : `<text x="100" y="98" text-anchor="middle" dominant-baseline="middle" font-size="70">${em}</text>`;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 270">
+<rect width="200" height="270" rx="10" fill="white"/>
+<rect x="2" y="2" width="196" height="266" rx="9" fill="none" stroke="${color}" stroke-width="3"/>
+<rect x="6" y="6" width="188" height="172" rx="7" fill="#fffaf5"/>
+${emojis}
+<text x="100" y="196" text-anchor="middle" font-family="Arial,sans-serif" font-size="26" font-weight="bold" fill="#1a1a1a">${w.toUpperCase()}</text>
+<text x="100" y="224" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" fill="#333">${w}</text>
+<text x="100" y="252" text-anchor="middle" font-family="'Belle Allure CM',cursive,Georgia,serif" font-size="22" font-style="italic" fill="#555">${w}</text>
+</svg>`;
+  try{return 'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));}
+  catch(err){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);}
 }
 
 // Retire le pronom si l'IA l'a inclus dans la forme verbale
@@ -687,16 +680,16 @@ Remplace tous les "X" par des mots liés à "${theme}". Exactement 6 entrées pa
   const [perso,verbes,lieux] = await Promise.all([
     Promise.all((data.personnages||[]).map(async it=>{
       const sg=_wSg(it)||'?'; const pl=_wPl(it)||sg;
-      return {sg:await mkCanvas(it.emoji||'👤',sg,TC,false),
-              pl:await mkCanvas(it.emoji||'👤',pl,TC,true)};
+      return {sg:mkCanvas(it.emoji||'👤',sg,TC,false),
+              pl:mkCanvas(it.emoji||'👤',pl,TC,true)};
     })),
     Promise.all((data.verbes||[]).map(async it=>({
       sg:await mkCanvasVerb(it,VC,false),
       pl:await mkCanvasVerb(it,VC,true)}))),
     Promise.all((data.lieux||[]).map(async it=>{
       const sg=_wSg(it)||'?'; const pl=_wPl(it)||sg;
-      return {sg:await mkCanvas(it.emoji||'📍',sg,TC,false),
-              pl:await mkCanvas(it.emoji||'📍',pl,TC,true)};
+      return {sg:mkCanvas(it.emoji||'📍',sg,TC,false),
+              pl:mkCanvas(it.emoji||'📍',pl,TC,true)};
     })),
   ]);
   mkAcc('👤','Personnages',TC,false,g=>{
