@@ -529,7 +529,21 @@ async function llmCall(prompt, relais){
   return d.choices?.[0]?.message?.content || '';
 }
 
-function _w(it,keys){for(const k of keys){if(it&&it[k]&&it[k]!==it.emoji)return it[k];}return "";}
+// Trouve le singulier d'un item quelle que soit la clé utilisée par l'IA
+function _wSg(it){
+  const known=['sg','nom','name','singular','singulier','word','mot','animal','personnage','lieu','place','character'];
+  for(const k of known) if(it&&it[k]&&typeof it[k]==='string'&&it[k]!==it.emoji&&it[k].length>0) return it[k];
+  // Fallback: première valeur chaîne qui n'est pas l'emoji
+  return Object.values(it||{}).find(v=>typeof v==='string'&&v!==it.emoji&&v.length>1)||'';
+}
+// Trouve le pluriel d'un item quelle que soit la clé utilisée par l'IA
+function _wPl(it){
+  const known=['pl','plural','pluriel','plurals','noms','names','words','mots','animaux'];
+  for(const k of known) if(it&&it[k]&&typeof it[k]==='string'&&it[k]!==it.emoji&&it[k].length>0) return it[k];
+  // Fallback: deuxième valeur chaîne différente du singulier
+  const sg=_wSg(it);
+  return Object.values(it||{}).filter(v=>typeof v==='string'&&v!==it.emoji&&v.length>1&&v!==sg)[0]||sg;
+}
 function _rr(ctx,x,y,w,h,r){
   if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
   else{ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
@@ -602,8 +616,8 @@ async function mkCanvasVerb(item, color, isPlural){
   ctx.beginPath();ctx.moveTo(12,118);ctx.lineTo(188,118);ctx.stroke();
   // 3 formes conjuguées (avec strip pronom + auto-fit)
   const rows=isPlural
-    ?[['nous',_w(item,['nous','1pp','p1'])||''],['vous',_w(item,['vous','2pp','p2'])||''],['ils/elles',_w(item,['ils','3pp','p3','elles'])||'']]
-    :[['je',_w(item,['je','1ps','s1'])||''],['tu',_w(item,['tu','2ps','s2'])||''],['il/elle',_w(item,['il','3ps','s3','elle'])||'']];
+    ?[['nous',item.nous||''],['vous',item.vous||''],['ils/elles',item.ils||item.elles||'']]
+    :[['je',item.je||''],['tu',item.tu||''],['il/elle',item.il||item.elle||'']];
   const lY=[143,178,213];
   rows.forEach(([p,v],i)=>{
     const verb=_stripPron(p,v); // retirer le pronom si doublon
@@ -681,10 +695,9 @@ Remplace tous les "X" par des mots liés à "${theme}". Exactement 6 entrées pa
       sg:await mkCanvasVerb(it,VC,false),
       pl:await mkCanvasVerb(it,VC,true)}))),
     Promise.all((data.lieux||[]).map(async it=>{
-      const sg=_w(it,['sg','nom','name','singular','singulier','lieu','word']);
-      const pl=_w(it,['pl','noms','plural','pluriel']);
-      return {sg:await mkCanvas(it.emoji||'📍',sg||'?',TC,false),
-              pl:await mkCanvas(it.emoji||'📍',pl||sg||'?',TC,true)};
+      const sg=_wSg(it)||'?'; const pl=_wPl(it)||sg;
+      return {sg:await mkCanvas(it.emoji||'📍',sg,TC,false),
+              pl:await mkCanvas(it.emoji||'📍',pl,TC,true)};
     })),
   ]);
   mkAcc('👤','Personnages',TC,false,g=>{
