@@ -529,6 +529,7 @@ async function llmCall(prompt, relais){
   return d.choices?.[0]?.message?.content || '';
 }
 
+function _w(it,keys){for(const k of keys){if(it&&it[k]&&it[k]!==it.emoji)return it[k];}return "";}
 function _rr(ctx,x,y,w,h,r){
   if(ctx.roundRect){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
   else{ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
@@ -551,7 +552,7 @@ async function mkCanvas(emoji, word, color, isPlural){
   else{ctx.font='70px serif';ctx.fillText(emoji,100,98);}
   // MOT EN MAJUSCULES — auto-fit si trop long
   ctx.fillStyle='#1a1a1a';ctx.textBaseline='alphabetic';
-  _fitText(ctx,word.toUpperCase(),100,196,true,26,'Arial Black,sans-serif',188,'center');
+  _fitText(ctx,word.toUpperCase(),100,196,true,26,'Arial,sans-serif',188,'center');
   // mot minuscules
   ctx.fillStyle='#333';
   _fitText(ctx,word,100,224,false,22,'Arial,sans-serif',188,'center');
@@ -601,8 +602,8 @@ async function mkCanvasVerb(item, color, isPlural){
   ctx.beginPath();ctx.moveTo(12,118);ctx.lineTo(188,118);ctx.stroke();
   // 3 formes conjuguées (avec strip pronom + auto-fit)
   const rows=isPlural
-    ?[['nous',item.nous||''],['vous',item.vous||''],['ils/elles',item.ils||'']]
-    :[['je',item.je||''],['tu',item.tu||''],['il/elle',item.il||'']];
+    ?[['nous',_w(item,['nous','1pp','p1'])||''],['vous',_w(item,['vous','2pp','p2'])||''],['ils/elles',_w(item,['ils','3pp','p3','elles'])||'']]
+    :[['je',_w(item,['je','1ps','s1'])||''],['tu',_w(item,['tu','2ps','s2'])||''],['il/elle',_w(item,['il','3ps','s3','elle'])||'']];
   const lY=[143,178,213];
   rows.forEach(([p,v],i)=>{
     const verb=_stripPron(p,v); // retirer le pronom si doublon
@@ -670,15 +671,21 @@ Remplace tous les "X" par des mots liés à "${theme}". Exactement 6 entrées pa
   // Pré-générer toutes les cartes via canvas (accès à Belle Allure CM)
   tprog('Création des cartes…');
   const [perso,verbes,lieux] = await Promise.all([
-    Promise.all((data.personnages||[]).map(async it=>({
-      sg:await mkCanvas(it.emoji,it.sg||'',TC,false),
-      pl:await mkCanvas(it.emoji,it.pl||'',TC,true)}))),
+    Promise.all((data.personnages||[]).map(async it=>{
+      const sg=_w(it,['sg','nom','name','singular','singulier','word']);
+      const pl=_w(it,['pl','noms','plural','pluriel']);
+      return {sg:await mkCanvas(it.emoji||'👤',sg||'?',TC,false),
+              pl:await mkCanvas(it.emoji||'👤',pl||sg||'?',TC,true)};
+    })),
     Promise.all((data.verbes||[]).map(async it=>({
       sg:await mkCanvasVerb(it,VC,false),
       pl:await mkCanvasVerb(it,VC,true)}))),
-    Promise.all((data.lieux||[]).map(async it=>({
-      sg:await mkCanvas(it.emoji,it.sg||'',TC,false),
-      pl:await mkCanvas(it.emoji,it.pl||'',TC,true)}))),
+    Promise.all((data.lieux||[]).map(async it=>{
+      const sg=_w(it,['sg','nom','name','singular','singulier','lieu','word']);
+      const pl=_w(it,['pl','noms','plural','pluriel']);
+      return {sg:await mkCanvas(it.emoji||'📍',sg||'?',TC,false),
+              pl:await mkCanvas(it.emoji||'📍',pl||sg||'?',TC,true)};
+    })),
   ]);
   mkAcc('👤','Personnages',TC,false,g=>{
     perso.forEach(c=>g.appendChild(mkCardEl(c.sg,c.pl,false)));
