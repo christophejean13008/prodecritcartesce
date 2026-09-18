@@ -686,10 +686,9 @@ Remplace tous les "X" par des mots liés à "${theme}". Exactement 6 entrées pa
   tprog('Création des cartes…');
   const [perso,verbes,lieux] = await Promise.all([
     Promise.all((data.personnages||[]).map(async it=>{
-      const sg=_w(it,['sg','nom','name','singular','singulier','word']);
-      const pl=_w(it,['pl','noms','plural','pluriel']);
-      return {sg:await mkCanvas(it.emoji||'👤',sg||'?',TC,false),
-              pl:await mkCanvas(it.emoji||'👤',pl||sg||'?',TC,true)};
+      const sg=_wSg(it)||'?'; const pl=_wPl(it)||sg;
+      return {sg:await mkCanvas(it.emoji||'👤',sg,TC,false),
+              pl:await mkCanvas(it.emoji||'👤',pl,TC,true)};
     })),
     Promise.all((data.verbes||[]).map(async it=>({
       sg:await mkCanvasVerb(it,VC,false),
