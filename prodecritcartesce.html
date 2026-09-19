@@ -194,11 +194,74 @@ body.recopie .writing-lines{display:block}
 .theme-width-ctrl{display:flex;align-items:center;gap:.5rem;margin:.4rem 0 .2rem;font-family:'Baloo 2',cursive;font-size:.75rem;color:#aaa}
 .theme-width-ctrl input[type=range]{flex:1;accent-color:#e8834f;height:4px;cursor:pointer}
 .theme-width-ctrl span{min-width:2.5rem;text-align:right;color:#e8834f;font-weight:700}
+
+/* ===== ALBUM PANINI ===== */
+#btn-album{background:none;border:1.5px solid #ccc;border-radius:8px;font-size:1.15rem;padding:.18rem .45rem;cursor:pointer;opacity:.6;transition:opacity .2s,border-color .2s;flex-shrink:0;margin-left:.3rem}
+#btn-album:hover{opacity:1;border-color:#888}
+.album-ov{display:none;position:fixed;inset:0;z-index:11000;background:#f0f4ff;overflow-y:auto;overflow-x:hidden}
+.album-ov.open{display:block}
+.album-wrap{max-width:720px;margin:0 auto;padding:.8rem 1rem 5rem}
+.album-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;gap:.5rem}
+.album-title{font-family:'Baloo 2',cursive;font-size:1.15rem;font-weight:800;color:#333;flex:1}
+.album-hdr-btns{display:flex;gap:.4rem}
+.btn-teacher{font-family:'Baloo 2',cursive;font-size:.75rem;font-weight:700;border:2px solid #ddd;border-radius:50px;padding:.25rem .7rem;cursor:pointer;background:#fff;transition:all .2s}
+.btn-teacher.on{background:#f5576c;color:#fff;border-color:#f5576c}
+.btn-alb-close{background:none;border:1.5px solid #ccc;border-radius:8px;font-size:1rem;padding:.15rem .4rem;cursor:pointer}
+/* élèves */
+.album-studs{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.7rem;align-items:center}
+.stud-btn{font-family:'Baloo 2',cursive;font-size:.82rem;font-weight:700;border:2px solid #bbb;border-radius:50px;padding:.22rem .7rem;cursor:pointer;background:#fff;color:#555;position:relative;transition:all .15s}
+.stud-btn.active{background:#30b4ff;color:#fff;border-color:#30b4ff}
+.stud-del{position:absolute;top:-5px;right:-5px;background:#f5576c;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
+.add-stud{display:flex;gap:.3rem}
+.add-stud input{font-family:inherit;border:2px solid #ddd;border-radius:8px;padding:.22rem .5rem;font-size:.8rem;width:90px}
+.add-stud button{font-family:inherit;border:2px solid #30b4ff;border-radius:8px;padding:.22rem .55rem;font-size:.85rem;font-weight:700;cursor:pointer;background:#30b4ff;color:#fff}
+/* catégories */
+.alb-cat{background:#fff;border-radius:14px;padding:.7rem .9rem;margin-bottom:.6rem;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.alb-cat-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;font-family:'Baloo 2',cursive;font-weight:800;font-size:.88rem}
+.alb-score{font-size:.8rem;color:#aaa;font-weight:600}
+.alb-prog{height:6px;background:#eee;border-radius:3px;margin-bottom:.5rem;overflow:hidden}
+.alb-bar{height:100%;border-radius:3px;transition:width .5s ease}
+.alb-slots{display:flex;flex-wrap:wrap;gap:.3rem}
+.alb-slot{width:42px;height:56px;border-radius:5px;border:2px dashed #ddd;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:#ccc;cursor:default;background-size:contain;background-repeat:no-repeat;background-position:center;transition:all .25s;position:relative;overflow:hidden}
+.alb-slot.filled{border-style:solid;color:transparent}
+.alb-slot.giveable{cursor:pointer;border-style:dashed;animation:pulse-slot 1.5s infinite}
+.alb-slot.giveable:hover{transform:scale(1.15)}
+@keyframes pulse-slot{0%,100%{opacity:.5}50%{opacity:1}}
+.alb-slot.new-collect{animation:stick-in .5s forwards}
+@keyframes stick-in{0%{transform:scale(1.8) rotate(-8deg);opacity:.3}70%{transform:scale(0.95) rotate(2deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+/* footer */
+.album-footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #eee;padding:.6rem 1rem;display:flex;gap:.5rem;justify-content:center;box-shadow:0 -2px 8px rgba(0,0,0,.06)}
+.btn-dist{font-family:'Baloo 2',cursive;font-weight:700;font-size:.88rem;padding:.45rem 1.2rem;border:none;border-radius:50px;background:linear-gradient(135deg,#30b4ff,#7b2d8b);color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(48,180,255,.3);transition:transform .15s}
+.btn-dist:hover{transform:translateY(-1px)}
+.btn-dist:disabled{opacity:.4;cursor:default;transform:none}
+.btn-phrase{font-family:'Baloo 2',cursive;font-weight:700;font-size:.88rem;padding:.45rem 1.2rem;border:2px solid #2e9e2e;border-radius:50px;background:#fff;color:#2e9e2e;cursor:pointer;transition:all .15s}
+.btn-phrase:hover{background:#2e9e2e;color:#fff}
+/* ── reveal ── */
+.reveal-ov{display:none;position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.75);align-items:center;justify-content:center;flex-direction:column;gap:1.2rem}
+.reveal-ov.open{display:flex}
+.reveal-msg{font-family:'Baloo 2',cursive;font-size:1.2rem;font-weight:800;color:#fff;text-align:center}
+.reveal-scene{perspective:800px}
+.reveal-card{width:180px;height:240px;position:relative;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.4,0,.2,1)}
+.reveal-card.flipped{transform:rotateY(180deg)}
+.rv-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.rv-back{background:#1478a8 repeating-linear-gradient(45deg,transparent,transparent 12px,rgba(255,255,255,.1) 12px,rgba(255,255,255,.1) 24px);}
+.rv-front{transform:rotateY(180deg)}
+.reveal-btns{display:flex;flex-direction:column;gap:.5rem;align-items:center}
+.rv-btn{font-family:'Baloo 2',cursive;font-weight:700;font-size:.9rem;padding:.5rem 1.5rem;border:none;border-radius:50px;cursor:pointer}
+.rv-btn-flip{background:#30b4ff;color:#fff}
+.rv-btn-collect{background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;font-size:1rem;animation:pulse-btn .8s infinite}
+@keyframes pulse-btn{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.rv-btn-skip{background:transparent;color:#aaa;border:1.5px solid #aaa;font-size:.8rem;padding:.3rem 1rem}
+/* sparkle */
+.sparkle{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem;pointer-events:none;z-index:13000;animation:sparkle-anim 1.2s forwards}
+@keyframes sparkle-anim{0%{opacity:1;transform:translate(-50%,-50%) scale(.5)}50%{opacity:1;transform:translate(-50%,-60%) scale(1.5)}100%{opacity:0;transform:translate(-50%,-80%) scale(1)}}
+.total-badge{font-family:'Baloo 2',cursive;font-size:.8rem;font-weight:700;color:#888;text-align:center;padding:.2rem 0}
 </style>
 </head>
 <body>
 <div class="header">
-  <div class="header-top"><h1>📚 Mes Cartes de Mots</h1><button id="btn-print" onclick="openPrintModal()" title="Imprimer les cartes">🖨️</button></div>
+  <div class="header-top"><h1>📚 Mes Cartes de Mots</h1><button id="btn-album" onclick="openAlbum()" title="Album de mots Panini">📚</button>
+  <button id="btn-print" onclick="openPrintModal()" title="Imprimer les cartes">🖨️</button></div>
   <p class="credit">Créé par Mr Christophe Jean · ESDP RASED Corniche Marseille</p>
   <div class="tabs">
     <button class="tab-btn active" data-cat="blue"  onclick="show('noms',this)">🔵 Noms</button>
@@ -844,6 +907,43 @@ body{background:#fff}
 </style></head>
 <body>${pHTML}
 <script>window.onload=()=>setTimeout(()=>window.print(),280);<\/script>
+
+<!-- ALBUM PANINI -->
+<div class="album-ov" id="album-ov">
+  <div class="album-wrap">
+    <div class="album-hdr">
+      <div class="album-title">📚 Mon Album de Mots</div>
+      <div class="album-hdr-btns">
+        <button class="btn-teacher" id="btn-teacher" onclick="albToggleTeacher()">🔑 Mode Enseignant</button>
+        <button class="btn-alb-close" onclick="closeAlbum()">✕</button>
+      </div>
+    </div>
+    <div class="album-studs" id="album-studs"></div>
+    <div class="total-badge" id="album-total"></div>
+    <div id="album-content"></div>
+  </div>
+  <div class="album-footer">
+    <button class="btn-dist" id="btn-dist" onclick="albDistribute()" disabled>🎴 Donner une carte</button>
+    <button class="btn-phrase" onclick="closeAlbum()">✏️ Construire une phrase</button>
+  </div>
+</div>
+
+<!-- REVEAL CARTE -->
+<div class="reveal-ov" id="reveal-ov">
+  <div class="reveal-msg" id="reveal-msg">🎴 Quelle est cette carte ?</div>
+  <div class="reveal-scene">
+    <div class="reveal-card" id="reveal-card">
+      <div class="rv-face rv-back"></div>
+      <div class="rv-face rv-front" id="rv-front"></div>
+    </div>
+  </div>
+  <div class="reveal-btns">
+    <button class="rv-btn rv-btn-flip" id="rv-btn-flip" onclick="albReveal()">🔍 Retourner la carte</button>
+    <button class="rv-btn rv-btn-collect" id="rv-btn-collect" onclick="albCollect()" style="display:none">⭐ Coller dans mon album !</button>
+    <button class="rv-btn rv-btn-skip" onclick="albSkip()">Passer</button>
+  </div>
+</div>
+
 </body></html>`;
 
   const w = window.open('','_blank');
@@ -852,6 +952,153 @@ body{background:#fff}
   w.document.close();
   closePrintModal();
 };
+
+
+// ===== ALBUM PANINI =====
+const _ACATS = [
+  {id:'noms',        lb:'Noms',         c:'#30b4ff', ic:'🔵'},
+  {id:'adjectifs',   lb:'Adjectifs',    c:'#2e9e2e', ic:'🟢'},
+  {id:'verbes',      lb:'Verbes',       c:'#ee0000', ic:'🔴'},
+  {id:'determinants',lb:'Déterminants', c:'#1a1a1a', ic:'⬛'},
+  {id:'prepositions',lb:'Prépositions', c:'#666',    ic:'◼️'},
+  {id:'divers',      lb:'Mots liens',   c:'#8B5E3C', ic:'🟫'},
+  {id:'pronoms',     lb:'Pronoms',      c:'#7b2d8b', ic:'🟣'},
+];
+
+let _alb = {students:[], current:'', cols:{}, teacher:false, pending:null};
+
+function _albLoad(){
+  try{
+    _alb.students = JSON.parse(localStorage.getItem('alb_s')||'[]');
+    _alb.current  = localStorage.getItem('alb_cur')||'';
+    _alb.cols     = JSON.parse(localStorage.getItem('alb_c')||'{}');
+  }catch(e){}
+}
+function _albSave(){
+  localStorage.setItem('alb_s',  JSON.stringify(_alb.students));
+  localStorage.setItem('alb_cur', _alb.current);
+  localStorage.setItem('alb_c',  JSON.stringify(_alb.cols));
+}
+function _col(s){ return new Set(_alb.cols[s]||[]); }
+function _total(id){ const s=document.getElementById('section-'+id); return s?s.querySelectorAll('.card-wrapper').length:0; }
+function _cid(cat,i){ return cat+'-'+i; }
+function _addCard(id){ if(!_alb.current)return; if(!_alb.cols[_alb.current])_alb.cols[_alb.current]=[]; if(!_alb.cols[_alb.current].includes(id)){_alb.cols[_alb.current].push(id);_albSave();} }
+function _imgOf(cat,i){ const s=document.getElementById('section-'+cat); if(!s)return null; const c=s.querySelectorAll('.card-wrapper'); if(i>=c.length)return null; return {f:c[i].getAttribute('data-front'),b:c[i].getAttribute('data-back')}; }
+function _randomUnCol(){
+  if(!_alb.current)return null;
+  const col=_col(_alb.current), pool=[];
+  _ACATS.forEach(cat=>{const t=_total(cat.id);for(let i=0;i<t;i++){const id=_cid(cat.id,i);if(!col.has(id))pool.push({cat:cat.id,i,id});}});
+  return pool.length?pool[Math.floor(Math.random()*pool.length)]:null;
+}
+
+window.openAlbum = function(){
+  _albLoad();
+  document.getElementById('album-ov').classList.add('open');
+  _albRender();
+};
+window.closeAlbum = function(){ document.getElementById('album-ov').classList.remove('open'); };
+
+window.albToggleTeacher = function(){
+  _alb.teacher = !_alb.teacher;
+  const b=document.getElementById('btn-teacher');
+  b.textContent = _alb.teacher?'🎓 Mode Élève':'🔑 Mode Enseignant';
+  b.classList.toggle('on',_alb.teacher);
+  _albRender();
+};
+
+window.albSelectStudent = function(n){
+  _alb.current=n; localStorage.setItem('alb_cur',n); _albRender();
+};
+window.albAddStudent = function(){
+  const inp=document.getElementById('alb-new'); const n=inp.value.trim();
+  if(!n||_alb.students.includes(n))return;
+  _alb.students.push(n);
+  if(!_alb.current)_alb.current=n;
+  _albSave(); inp.value=''; _albRender();
+};
+window.albRemoveStudent = function(n){
+  if(!confirm('Supprimer '+n+' ?'))return;
+  _alb.students=_alb.students.filter(s=>s!==n);
+  delete _alb.cols[n];
+  if(_alb.current===n)_alb.current=_alb.students[0]||'';
+  _albSave(); _albRender();
+};
+
+window.albDistribute = function(){
+  if(!_alb.current)return;
+  const card=_randomUnCol();
+  if(!card){alert('🎉 '+_alb.current+' a toutes les cartes !');return;}
+  _albShowReveal(card.cat,card.i,card.id);
+};
+window._albGive = function(cat,i,id){
+  _albShowReveal(cat,i,id);
+};
+
+function _albShowReveal(cat,i,id){
+  const imgs=_imgOf(cat,i); if(!imgs)return;
+  _alb.pending={cat,i,id};
+  document.getElementById('rv-front').style.backgroundImage=`url('${imgs.f}')`;
+  document.getElementById('reveal-card').classList.remove('flipped');
+  document.getElementById('rv-btn-flip').style.display='block';
+  document.getElementById('rv-btn-collect').style.display='none';
+  document.getElementById('reveal-msg').textContent='🎴 Lis le mot sur cette carte !';
+  document.getElementById('reveal-ov').classList.add('open');
+}
+window.albReveal = function(){
+  document.getElementById('reveal-card').classList.add('flipped');
+  document.getElementById('rv-btn-flip').style.display='none';
+  document.getElementById('rv-btn-collect').style.display='block';
+  document.getElementById('reveal-msg').textContent='✅ Bien lu ! Colle ta carte dans l\'album.';
+};
+window.albCollect = function(){
+  if(!_alb.pending)return;
+  _addCard(_alb.pending.id);
+  document.getElementById('reveal-ov').classList.remove('open');
+  _albRender();
+  // Sparkle
+  const sp=document.createElement('div'); sp.className='sparkle'; sp.textContent='⭐'; document.body.appendChild(sp);
+  setTimeout(()=>sp.remove(),1300);
+};
+window.albSkip = function(){ document.getElementById('reveal-ov').classList.remove('open'); };
+
+function _albRender(){
+  const hasSt=!!_alb.current;
+  const col=hasSt?_col(_alb.current):new Set();
+
+  // Élèves
+  const esc=s=>s.replace(/'/g,"\\'");
+  document.getElementById('album-studs').innerHTML =
+    _alb.students.map(s=>`<button class="stud-btn${s===_alb.current?' active':''}" onclick="albSelectStudent('${esc(s)}')">${s}${_alb.teacher?`<span class="stud-del" onclick="event.stopPropagation();albRemoveStudent('${esc(s)}')">✕</span>`:''}</button>`).join('') +
+    (_alb.teacher?`<div class="add-stud"><input id="alb-new" placeholder="Prénom..." onkeydown="if(event.key==='Enter')albAddStudent()"><button onclick="albAddStudent()">+</button></div>`:'');
+
+  // Total
+  let grandTotal=0, grandCol=0;
+  _ACATS.forEach(cat=>{grandTotal+=_total(cat.id);if(hasSt){const t=_total(cat.id);for(let i=0;i<t;i++)if(col.has(_cid(cat.id,i)))grandCol++;}});
+  document.getElementById('album-total').textContent = hasSt?`📊 ${grandCol} / ${grandTotal} cartes collectées`:'';
+
+  // Catégories
+  document.getElementById('album-content').innerHTML = _ACATS.map(cat=>{
+    const t=_total(cat.id); if(!t)return'';
+    let nc=0;
+    const slots=Array.from({length:t},(_,i)=>{
+      const id=_cid(cat.id,i), isCol=col.has(id);
+      if(isCol)nc++;
+      const imgs=isCol?_imgOf(cat.id,i):null;
+      const bg=isCol&&imgs?`background-image:url('${imgs.f}');background-color:#fff`:'' ;
+      const click=_alb.teacher&&!isCol&&hasSt?`onclick="_albGive('${cat.id}',${i},'${id}')"`:'' ;
+      return `<div class="alb-slot${isCol?' filled':''}${_alb.teacher&&!isCol&&hasSt?' giveable':''}" style="${bg?bg+';':''}border-color:${isCol?cat.c:cat.c+'40'}" ${click}>${isCol?'':'?'}</div>`;
+    }).join('');
+    const pct=t?(nc/t*100).toFixed(0):0;
+    return `<div class="alb-cat">
+      <div class="alb-cat-hd"><span style="color:${cat.c}">${cat.ic} ${cat.lb}</span><span class="alb-score">${nc}/${t}</span></div>
+      <div class="alb-prog"><div class="alb-bar" style="width:${pct}%;background:${cat.c}"></div></div>
+      <div class="alb-slots">${slots}</div>
+    </div>`;
+  }).join('');
+
+  // Bouton distribuer
+  document.getElementById('btn-dist').disabled = !hasSt || grandCol>=grandTotal;
+}
 
 </script>
 
@@ -906,5 +1153,42 @@ body{background:#fff}
     </div>
   </div>
 </div>
+
+<!-- ALBUM PANINI -->
+<div class="album-ov" id="album-ov">
+  <div class="album-wrap">
+    <div class="album-hdr">
+      <div class="album-title">📚 Mon Album de Mots</div>
+      <div class="album-hdr-btns">
+        <button class="btn-teacher" id="btn-teacher" onclick="albToggleTeacher()">🔑 Mode Enseignant</button>
+        <button class="btn-alb-close" onclick="closeAlbum()">✕</button>
+      </div>
+    </div>
+    <div class="album-studs" id="album-studs"></div>
+    <div class="total-badge" id="album-total"></div>
+    <div id="album-content"></div>
+  </div>
+  <div class="album-footer">
+    <button class="btn-dist" id="btn-dist" onclick="albDistribute()" disabled>🎴 Donner une carte</button>
+    <button class="btn-phrase" onclick="closeAlbum()">✏️ Construire une phrase</button>
+  </div>
+</div>
+
+<!-- REVEAL CARTE -->
+<div class="reveal-ov" id="reveal-ov">
+  <div class="reveal-msg" id="reveal-msg">🎴 Quelle est cette carte ?</div>
+  <div class="reveal-scene">
+    <div class="reveal-card" id="reveal-card">
+      <div class="rv-face rv-back"></div>
+      <div class="rv-face rv-front" id="rv-front"></div>
+    </div>
+  </div>
+  <div class="reveal-btns">
+    <button class="rv-btn rv-btn-flip" id="rv-btn-flip" onclick="albReveal()">🔍 Retourner la carte</button>
+    <button class="rv-btn rv-btn-collect" id="rv-btn-collect" onclick="albCollect()" style="display:none">⭐ Coller dans mon album !</button>
+    <button class="rv-btn rv-btn-skip" onclick="albSkip()">Passer</button>
+  </div>
+</div>
+
 </body>
 </html>
