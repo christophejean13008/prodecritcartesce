@@ -925,6 +925,8 @@ body{background:#fff}
   <div class="album-footer">
     <button class="btn-dist" id="btn-dist" onclick="albDistribute()" disabled>🎴 Donner une carte</button>
     <button class="btn-phrase" onclick="closeAlbum()">✏️ Construire une phrase</button>
+    <button class="btn-dist" style="background:linear-gradient(135deg,#f5a623,#e8834f)" onclick="printBlankAlbum()">📖 Imprimer l'album vierge</button>
+    <button class="btn-dist" style="background:linear-gradient(135deg,#2e9e2e,#30b4ff)" onclick="printNumberedCards()">🎴 Imprimer cartes numérotées</button>
   </div>
 </div>
 
@@ -1100,6 +1102,148 @@ function _albRender(){
   document.getElementById('btn-dist').disabled = !hasSt || grandCol>=grandTotal;
 }
 
+
+// ===== IMPRESSION ALBUM PHYSIQUE =====
+const _PRINT_CATS = [
+  {id:'noms',        label:'Noms',          color:'#30b4ff', emoji:'🔵'},
+  {id:'adjectifs',   label:'Adjectifs',     color:'#2e9e2e', emoji:'🟢'},
+  {id:'verbes',      label:'Verbes',        color:'#ee0000', emoji:'🔴'},
+  {id:'determinants',label:'Déterminants',  color:'#1a1a1a', emoji:'⬛'},
+  {id:'prepositions',label:'Prépositions',  color:'#666',    emoji:'◼️'},
+  {id:'divers',      label:'Mots liens',    color:'#8B5E3C', emoji:'🟫'},
+  {id:'pronoms',     label:'Pronoms',       color:'#7b2d8b', emoji:'🟣'},
+];
+
+function _getCatalog(){
+  const cards=[];
+  _PRINT_CATS.forEach(cat=>{
+    const sec=document.getElementById('section-'+cat.id);
+    if(!sec)return;
+    sec.querySelectorAll('.card-wrapper').forEach(w=>{
+      cards.push({num:cards.length+1, cat:cat.id, label:cat.label,
+        color:cat.color, emoji:cat.emoji,
+        front:w.getAttribute('data-front')});
+    });
+  });
+  return cards;
+}
+
+window.printBlankAlbum = function(){
+  const cards=_getCatalog();
+  const total=cards.length;
+  const SZ=9;
+
+  // Couverture
+  const legend=_PRINT_CATS.map(c=>`<span style="color:${c.color};font-weight:700">${c.emoji} ${c.label}</span>`).join(' &nbsp;·&nbsp; ');
+
+  let cover=`<div class="pg cover">
+    <div class="cover-inner">
+      <div class="cover-title">📚 Mon Album de Mots</div>
+      <div class="name-field"><span>Prénom :</span><div class="name-line"></div></div>
+      <div class="cover-total">${total} cartes à collectionner</div>
+      <div class="cover-legend">${legend}</div>
+      <div class="cover-hint">💡 Colle tes cartes dans les bonnes cases et écris le mot !</div>
+    </div>
+  </div>`;
+
+  // Pages de cases
+  const pages=[];
+  for(let i=0;i<cards.length;i+=SZ) pages.push(cards.slice(i,i+SZ));
+
+  const pagesHTML=pages.map((page,pi)=>{
+    const slots=page.map(c=>`
+      <div class="slot" style="border-color:${c.color}">
+        <div class="slot-top">
+          <span class="slot-num" style="background:${c.color}">${c.num}</span>
+          <span class="slot-emoji">${c.emoji}</span>
+        </div>
+        <div class="slot-area"></div>
+        <div class="slot-lines"><div class="wline"></div><div class="wline"></div></div>
+      </div>`).join('');
+    const fill=Array(SZ-page.length).fill('<div class="slot empty"></div>').join('');
+    const last=pi===pages.length-1?' last':'';
+    return `<div class="pg${last}"><div class="grid">${slots}${fill}</div></div>`;
+  }).join('');
+
+  const doc=`<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>Album de Mots — vierge</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+@page{size:A4 portrait;margin:10mm}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#fff}
+.pg{width:190mm;min-height:277mm;page-break-after:always;break-after:page;display:flex;flex-direction:column}
+.pg.last{page-break-after:avoid;break-after:auto}
+/* Couverture */
+.cover{align-items:center;justify-content:center;background:linear-gradient(160deg,#e8f4ff,#fff5f0)}
+.cover-inner{text-align:center;padding:2rem}
+.cover-title{font-size:2rem;font-weight:900;color:#333;margin-bottom:1.5rem}
+.name-field{display:flex;align-items:flex-end;gap:.5rem;margin-bottom:1.5rem;justify-content:center;font-size:1.1rem;font-weight:600;color:#555}
+.name-line{width:120mm;border-bottom:2.5px solid #555;height:24px}
+.cover-total{font-size:1.1rem;color:#888;margin-bottom:1rem}
+.cover-legend{font-size:.8rem;line-height:2;margin-bottom:1.5rem}
+.cover-hint{font-size:.9rem;color:#999;font-style:italic}
+/* Grille */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3mm;flex:1;padding:3mm 0}
+.slot{border:2.5px solid #ddd;border-radius:5mm;display:flex;flex-direction:column;overflow:hidden;background:#fff}
+.slot.empty{border-color:#eee}
+.slot-top{display:flex;justify-content:space-between;align-items:center;padding:1.5mm 2mm}
+.slot-num{color:#fff;font-size:8pt;font-weight:800;border-radius:3mm;padding:1mm 2.5mm;line-height:1}
+.slot-emoji{font-size:10pt}
+.slot-area{flex:1;background:#fafafa;border-top:1px solid #f0f0f0;border-bottom:1px solid #f0f0f0;min-height:45mm}
+.slot-lines{padding:2mm 3mm;display:flex;flex-direction:column;gap:2mm}
+.wline{border-bottom:1px solid #ccc;height:5mm}
+</style>
+</head>
+<body>
+${cover}
+${pagesHTML}
+<script>window.onload=()=>setTimeout(()=>window.print(),300);<\/script>
+</body></html>`;
+
+  const w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqué. Autorisez les pop-ups.');return;}
+  w.document.write(doc); w.document.close();
+};
+
+window.printNumberedCards = function(){
+  const cards=_getCatalog();
+  const SZ=9;
+  const pages=[];
+  for(let i=0;i<cards.length;i+=SZ) pages.push(cards.slice(i,i+SZ));
+
+  const pagesHTML=pages.map((page,pi)=>{
+    const cells=page.map(c=>`
+      <div class="cc" style="border-color:${c.color}">
+        <div class="card-num-badge" style="background:${c.color}">${c.num}</div>
+        <img src="${c.front}" style="width:100%;height:100%;object-fit:contain">
+      </div>`).join('');
+    const fill=Array(SZ-page.length).fill('<div class="cc empty"></div>').join('');
+    return `<div class="pg${pi===pages.length-1?' last':''}">${cells}${fill}</div>`;
+  }).join('');
+
+  const doc=`<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>Cartes numérotées</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+@page{size:A4 portrait;margin:8mm}
+body{background:#fff}
+.pg{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3mm;width:194mm;height:272mm;page-break-after:always;break-after:page}
+.pg.last{page-break-after:avoid;break-after:auto}
+.cc{border:2.5px solid #ddd;border-radius:3mm;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#fff;position:relative}
+.cc img{width:100%;height:100%;object-fit:contain}
+.cc.empty{border:none}
+.card-num-badge{position:absolute;top:3px;left:3px;color:#fff;font-size:8pt;font-weight:900;border-radius:3px;padding:1px 4px;z-index:1;font-family:Arial,sans-serif}
+</style>
+</head>
+<body>${pagesHTML}
+<script>window.onload=()=>setTimeout(()=>window.print(),300);<\/script>
+</body></html>`;
+
+  const w=window.open('','_blank');
+  if(!w){alert('Pop-up bloqué. Autorisez les pop-ups.');return;}
+  w.document.write(doc); w.document.close();
+};
+
 </script>
 
 <div id="recopie-overlay">
@@ -1171,6 +1315,8 @@ function _albRender(){
   <div class="album-footer">
     <button class="btn-dist" id="btn-dist" onclick="albDistribute()" disabled>🎴 Donner une carte</button>
     <button class="btn-phrase" onclick="closeAlbum()">✏️ Construire une phrase</button>
+    <button class="btn-dist" style="background:linear-gradient(135deg,#f5a623,#e8834f)" onclick="printBlankAlbum()">📖 Imprimer l'album vierge</button>
+    <button class="btn-dist" style="background:linear-gradient(135deg,#2e9e2e,#30b4ff)" onclick="printNumberedCards()">🎴 Imprimer cartes numérotées</button>
   </div>
 </div>
 
